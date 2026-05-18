@@ -1,5 +1,9 @@
 name: Monitor Ahara Website
 
+concurrency:
+  group: ration-monitor
+  cancel-in-progress: true
+  
 on:
   schedule:
     - cron: "*/15 * * * *"
@@ -32,16 +36,18 @@ jobs:
           python monitor.py
         continue-on-error: true
 
-      - name: Commit updated hash
-        run: |
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
+- name: Commit updated hash
+  run: |
+    git config user.name "github-actions"
+    git config user.email "actions@github.com"
 
-          git add last_hash.txt
+    git pull --rebase
 
-          git diff --cached --quiet || git commit -m "Update hash"
+    git add last_hash.txt
 
-          git push
+    git diff --cached --quiet || git commit -m "Update hash"
+
+    git push
 
       - name: Create issue if changed
         if: steps.monitor.outcome == 'failure'
